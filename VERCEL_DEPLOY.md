@@ -39,11 +39,11 @@ yarn global add vercel
    - 点击 "Import"
 
 4. **配置项目**
-   - **Framework Preset**: 选择 "Create React App"
-   - **Root Directory**: 选择 "frontend"
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `build`
-   - **Install Command**: `npm install`
+   - **Framework Preset**: 选择 "Other" 或 "Create React App"
+   - **Root Directory**: 留空（使用根目录）
+   - **Build Command**: `cd frontend && npm run build`
+   - **Output Directory**: `frontend/build`
+   - **Install Command**: `cd frontend && npm install`
 
 5. **环境变量设置**
    - 在 "Environment Variables" 部分添加：

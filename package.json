@@ -1,0 +1,26 @@
+{
+  "name": "todo-app",
+  "version": "1.0.0",
+  "description": "Todo application with React frontend and Python API",
+  "scripts": {
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm start",
+    "install": "cd frontend && npm install"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/project_cursor_todov2.git"
+  },
+  "keywords": [
+    "todo",
+    "react",
+    "python",
+    "api",
+    "vercel"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

@@ -144,33 +144,6 @@ async def update_todo(todo_id: int, todo_update: TodoUpdate):
             updated_at=row["updated_at"]
         )
 
-@router.delete("/{todo_id}", response_model=MessageResponse)
-async def delete_todo(todo_id: int):
-    """
-    删除任务
-    
-    Args:
-        todo_id: 任务ID
-    
-    Returns:
-        MessageResponse: 删除结果消息
-    """
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        
-        # 检查任务是否存在
-        cursor.execute("SELECT * FROM todos WHERE id = ?", (todo_id,))
-        existing_todo = cursor.fetchone()
-        
-        if not existing_todo:
-            raise HTTPException(status_code=404, detail="任务不存在")
-        
-        # 删除任务
-        cursor.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
-        conn.commit()
-        
-        return MessageResponse(message="任务删除成功")
-
 @router.delete("/completed", response_model=MessageResponse)
 async def delete_completed_todos():
     """
@@ -212,4 +185,31 @@ async def delete_all_todos():
         conn.commit()
         
         return MessageResponse(message=f"已清空{count}个任务")
+
+@router.delete("/{todo_id}", response_model=MessageResponse)
+async def delete_todo(todo_id: int):
+    """
+    删除任务
+    
+    Args:
+        todo_id: 任务ID
+    
+    Returns:
+        MessageResponse: 删除结果消息
+    """
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        
+        # 检查任务是否存在
+        cursor.execute("SELECT * FROM todos WHERE id = ?", (todo_id,))
+        existing_todo = cursor.fetchone()
+        
+        if not existing_todo:
+            raise HTTPException(status_code=404, detail="任务不存在")
+        
+        # 删除任务
+        cursor.execute("DELETE FROM todos WHERE id = ?", (todo_id,))
+        conn.commit()
+        
+        return MessageResponse(message="任务删除成功")
 

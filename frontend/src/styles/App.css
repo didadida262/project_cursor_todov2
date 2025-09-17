@@ -179,6 +179,11 @@ table {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
+/* 任务列表包装器 */
+.todo-list-wrapper {
+  transition: opacity 0.3s ease;
+}
+
 .app-container {
   width: 100%;
   max-width: 800px;

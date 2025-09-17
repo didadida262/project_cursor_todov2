@@ -142,9 +142,9 @@ function App() {
    * 处理筛选变化
    * @param {string} newFilter - 新的筛选条件
    */
-  const handleFilterChange = async (newFilter) => {
+  const handleFilterChange = (newFilter) => {
+    if (newFilter === filter) return; // 避免重复筛选
     setFilter(newFilter);
-    await fetchTodos(newFilter);
   };
 
   /**
@@ -171,7 +171,7 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // 根据筛选条件过滤任务
+  // 根据筛选条件过滤任务（客户端筛选，减少API调用）
   const filteredTodos = todos.filter(todo => {
     switch (filter) {
       case 'active':
@@ -232,12 +232,14 @@ function App() {
           />
 
           {/* 任务列表 */}
-          <TodoList
-            todos={filteredTodos}
-            onToggle={handleToggleTodo}
-            onDelete={handleDeleteTodo}
-            loading={loading}
-          />
+          <div key={filter} className="todo-list-wrapper">
+            <TodoList
+              todos={filteredTodos}
+              onToggle={handleToggleTodo}
+              onDelete={handleDeleteTodo}
+              loading={loading}
+            />
+          </div>
         </main>
       </div>
 

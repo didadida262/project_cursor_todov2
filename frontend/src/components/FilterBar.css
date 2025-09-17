@@ -21,27 +21,54 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
   background: white;
   color: var(--text-color);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.875rem;
   font-weight: 500;
+  position: relative;
+  overflow: hidden;
 }
 
 .filter-tab:hover:not(:disabled) {
   border-color: var(--primary-color);
   background: var(--light-color);
+  color: var(--primary-color);
   transform: translateY(-1px);
+  font-weight: 600;
 }
 
 .filter-tab.active {
-  background: var(--primary-color);
+  background: linear-gradient(135deg, var(--primary-color), #0056b3);
   border-color: var(--primary-color);
   color: white;
-  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  transform: translateY(-2px);
+  font-weight: 600;
+}
+
+.filter-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.filter-tab.active:hover {
+  background: linear-gradient(135deg, #0056b3, #004085);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.5);
+}
+
+.filter-tab.active:hover::before {
+  left: 100%;
 }
 
 .filter-tab:disabled {
@@ -65,7 +92,9 @@
 }
 
 .filter-tab.active .filter-count {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  font-weight: 700;
 }
 
 .filter-actions {

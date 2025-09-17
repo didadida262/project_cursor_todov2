@@ -59,8 +59,9 @@ class handler(BaseHTTPRequestHandler):
     
     def get_db_connection(self):
         """获取数据库连接"""
-        # 在 Vercel 中，我们需要使用临时文件
-        db_path = '/tmp/todos.db'
+        # 在 Vercel 中，使用临时文件
+        import tempfile
+        db_path = os.path.join(tempfile.gettempdir(), 'todos.db')
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
         return conn

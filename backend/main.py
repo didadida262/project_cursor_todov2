@@ -19,9 +19,20 @@ app = FastAPI(
 )
 
 # 配置CORS中间件
+import os
+allowed_origins = [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
+    "https://your-frontend-app.vercel.app"  # 替换为你的Vercel域名
+]
+
+# 从环境变量读取允许的源
+if os.environ.get("ALLOWED_ORIGINS"):
+    allowed_origins.extend(os.environ.get("ALLOWED_ORIGINS").split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],  # 前端开发服务器地址
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,11 +73,13 @@ async def global_exception_handler(request, exc):
     )
 
 if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8000))
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,
+        port=port,
+        reload=False,  # 生产环境关闭热重载
         log_level="info"
     )
 

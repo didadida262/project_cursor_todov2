@@ -5,7 +5,7 @@ import axios from 'axios';
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -139,7 +139,8 @@ class TodoAPI {
    */
   async checkConnection() {
     try {
-      const response = await axios.get('http://localhost:8000/health');
+      const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const response = await axios.get(`${baseURL}/health`);
       return response.status === 200;
     } catch (error) {
       console.error('API连接检查失败:', error);

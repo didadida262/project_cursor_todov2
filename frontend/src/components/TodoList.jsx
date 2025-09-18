@@ -1,11 +1,11 @@
 /**
  * TodoList 组件 - 任务列表
  */
-import React from 'react';
+import React, { memo } from 'react';
 import TodoItem from './TodoItem';
 import './TodoList.css';
 
-const TodoList = ({ 
+const TodoList = memo(({ 
   todos, 
   onToggle, 
   onDelete, 
@@ -39,9 +39,9 @@ const TodoList = ({
    */
   const renderTodoList = () => (
     <div className="todo-list">
-      {todos.map((todo) => (
+      {todos.map((todo, index) => (
         <TodoItem
-          key={todo.id}
+          key={`${todo.id}-${todo.created_at || index}`}
           todo={todo}
           onToggle={onToggle}
           onDelete={onDelete}
@@ -72,7 +72,9 @@ const TodoList = ({
       {renderTodoList()}
     </div>
   );
-};
+});
+
+TodoList.displayName = 'TodoList';
 
 export default TodoList;
 

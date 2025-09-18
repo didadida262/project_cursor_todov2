@@ -1,10 +1,10 @@
 /**
  * TodoItem 组件 - 单个任务项
  */
-import React from 'react';
+import React, { memo } from 'react';
 import './TodoItem.css';
 
-const TodoItem = ({ 
+const TodoItem = memo(({ 
   todo, 
   onToggle, 
   onDelete, 
@@ -103,7 +103,9 @@ const TodoItem = ({
       )}
     </div>
   );
-};
+});
+
+TodoItem.displayName = 'TodoItem';
 
 export default TodoItem;
 

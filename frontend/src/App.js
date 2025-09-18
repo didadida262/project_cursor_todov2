@@ -44,10 +44,17 @@ function App() {
     try {
       setAddingTodo(true);
       setError('');
+      setSuccess(''); // 清除之前的成功提示
       const newTodo = await todoAPI.createTodo(todoData);
+      
+      // 先更新任务列表，再显示成功提示
       setTodos(prevTodos => [newTodo, ...prevTodos]);
-      setSuccess('任务添加成功！');
-      setTimeout(() => setSuccess(''), 3000);
+      
+      // 延迟显示成功提示，避免与列表更新冲突
+      setTimeout(() => {
+        setSuccess('任务添加成功！');
+        setTimeout(() => setSuccess(''), 2000);
+      }, 100);
     } catch (err) {
       setError('添加任务失败，请重试');
       console.error('添加任务失败:', err);

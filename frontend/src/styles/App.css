@@ -183,6 +183,7 @@ table {
 .todo-list-wrapper {
   transition: opacity 0.2s ease;
   will-change: opacity;
+  contain: layout style paint;
 }
 
 .app-container {
@@ -203,6 +204,17 @@ table {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideDownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -309,6 +321,8 @@ table {
   align-items: center;
   gap: var(--spacing-sm);
   font-size: var(--font-size-sm);
+  animation: slideDownFadeIn 0.3s ease-out;
+  transform-origin: top;
 }
 
 .success-message::before {

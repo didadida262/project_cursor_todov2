@@ -197,6 +197,8 @@
 /* 动画效果 */
 .todo-item {
   animation: slideIn 0.2s ease-out;
+  transform: translateZ(0); /* 启用硬件加速 */
+  backface-visibility: hidden; /* 避免闪烁 */
 }
 
 @keyframes slideIn {

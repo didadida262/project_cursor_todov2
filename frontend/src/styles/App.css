@@ -181,7 +181,8 @@ table {
 
 /* 任务列表包装器 */
 .todo-list-wrapper {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s ease;
+  will-change: opacity;
 }
 
 .app-container {

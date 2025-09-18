@@ -13,6 +13,7 @@ function App() {
   const [todos, setTodos] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [addingTodo, setAddingTodo] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [connectionStatus, setConnectionStatus] = useState('loading');
@@ -41,7 +42,7 @@ function App() {
    */
   const handleAddTodo = async (todoData) => {
     try {
-      setLoading(true);
+      setAddingTodo(true);
       setError('');
       const newTodo = await todoAPI.createTodo(todoData);
       setTodos(prevTodos => [newTodo, ...prevTodos]);
@@ -51,7 +52,7 @@ function App() {
       setError('添加任务失败，请重试');
       console.error('添加任务失败:', err);
     } finally {
-      setLoading(false);
+      setAddingTodo(false);
     }
   };
 
@@ -218,7 +219,7 @@ function App() {
           {/* 任务输入表单 */}
           <TodoForm
             onAddTodo={handleAddTodo}
-            loading={loading}
+            loading={addingTodo}
           />
 
           {/* 筛选和批量操作栏 */}
@@ -243,8 +244,8 @@ function App() {
         </main>
       </div>
 
-      {/* 全局加载遮罩 */}
-      {loading && (
+      {/* 全局加载遮罩 - 只在批量操作时显示 */}
+      {loading && !addingTodo && (
         <div className="loading-overlay">
           <div className="loading-content">
             <div className="loading-spinner"></div>

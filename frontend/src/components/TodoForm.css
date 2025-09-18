@@ -20,9 +20,10 @@
   border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  will-change: border-color, box-shadow, transform;
 }
 
 .form-input:focus {
@@ -52,13 +53,14 @@
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
   min-width: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  will-change: background, transform, box-shadow;
 }
 
 .add-button:hover:not(:disabled) {

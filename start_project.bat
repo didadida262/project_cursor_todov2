@@ -4,7 +4,8 @@ echo ========================================
 
 echo.
 echo 📦 正在启动后端服务...
-start "后端服务" cmd /k "cd backend && python start.py"
+cd /d "%~dp0"
+start "后端服务" cmd /k "cd /d %~dp0backend && python main.py"
 
 echo.
 echo ⏳ 等待后端服务启动...
@@ -12,7 +13,7 @@ timeout /t 5 /nobreak >nul
 
 echo.
 echo 🎨 正在启动前端服务...
-start "前端服务" cmd /k "cd frontend && npm start"
+start "前端服务" cmd /k "cd /d %~dp0frontend && npm start"
 
 echo.
 echo ✅ 项目启动完成！

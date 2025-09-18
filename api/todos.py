@@ -1,12 +1,15 @@
 """
 Vercel API 函数 - Todo 管理
 """
-from http.server import BaseHTTPRequestHandler
 import json
-import sqlite3
 import os
+from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
+
+# 简化的内存数据库（避免文件系统问题）
+TODOS_DB = []
+NEXT_ID = 1
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -57,32 +60,23 @@ class handler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, "Not Found")
     
-    def get_db_connection(self):
-        """获取数据库连接"""
-        # 在 Vercel 中，使用临时文件
-        import tempfile
-        db_path = os.path.join(tempfile.gettempdir(), 'todos.db')
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row
-        return conn
+    def get_todos_from_memory(self):
+        """从内存获取任务列表"""
+        return TODOS_DB
     
-    def init_database(self):
-        """初始化数据库"""
-        conn = self.get_db_connection()
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS todos (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title VARCHAR(255) NOT NULL,
-                completed BOOLEAN DEFAULT FALSE,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        
-        conn.commit()
-        conn.close()
+    def add_todo_to_memory(self, title, completed=False):
+        """添加任务到内存"""
+        global NEXT_ID
+        todo = {
+            "id": NEXT_ID,
+            "title": title,
+            "completed": completed,
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
+        TODOS_DB.append(todo)
+        NEXT_ID += 1
+        return todo
     
     def get_todos(self):
         """获取任务列表"""

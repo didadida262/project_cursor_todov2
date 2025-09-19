@@ -1,16 +1,65 @@
 """
-Vercel API 函数 - Todo 管理
-使用内存数据库，适合Serverless环境
+Vercel API 函数 - Todo 管理 (使用 Postgres 数据库)
+实现数据持久化存储
 """
 import json
 import os
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-# 简化的内存数据库（避免文件系统问题）
-TODOS_DB = []
-NEXT_ID = 1
+# 从环境变量获取数据库连接信息
+DATABASE_URL = os.environ.get('POSTGRES_URL')
+
+def get_db_connection():
+    """获取数据库连接"""
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return None
+
+def init_database():
+    """初始化数据库表"""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    
+    try:
+        cursor = conn.cursor()
+        
+        # 创建todos表
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS todos (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                completed BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+        """)
+        
+        # 创建索引
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_todos_completed 
+            ON todos(completed)
+        """)
+        
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_todos_created_at 
+            ON todos(created_at)
+        """)
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Database initialization error: {e}")
+        return False
+    finally:
+        conn.close()
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -40,7 +89,7 @@ class handler(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         path = parsed_path.path
         
-        if path.startswith('/api/todos/'):
+        if path.startswith('/api/todos/') and path != '/api/todos/completed' and path != '/api/todos/all':
             todo_id = path.split('/')[-1]
             self.update_todo(todo_id)
         else:
@@ -61,42 +110,55 @@ class handler(BaseHTTPRequestHandler):
         else:
             self.send_error(404, "Not Found")
     
-    def get_todos_from_memory(self):
-        """从内存获取任务列表"""
-        return TODOS_DB
-    
-    def add_todo_to_memory(self, title, completed=False):
-        """添加任务到内存"""
-        global NEXT_ID
-        todo = {
-            "id": NEXT_ID,
-            "title": title,
-            "completed": completed,
-            "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat()
-        }
-        TODOS_DB.append(todo)
-        NEXT_ID += 1
-        return todo
+    def do_OPTIONS(self):
+        """处理 CORS 预检请求"""
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
     
     def get_todos(self):
         """获取任务列表"""
         try:
+            # 初始化数据库
+            init_database()
+            
             # 获取查询参数
             parsed_path = urlparse(self.path)
             query_params = parse_qs(parsed_path.query)
             status = query_params.get('status', ['all'])[0]
             
-            todos = self.get_todos_from_memory()
+            conn = get_db_connection()
+            if not conn:
+                self.send_error(500, "Database connection failed")
+                return
             
-            # 根据状态筛选
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            
+            # 构建查询SQL
             if status == 'active':
-                todos = [todo for todo in todos if not todo['completed']]
+                cursor.execute("SELECT * FROM todos WHERE completed = FALSE ORDER BY created_at DESC")
             elif status == 'completed':
-                todos = [todo for todo in todos if todo['completed']]
+                cursor.execute("SELECT * FROM todos WHERE completed = TRUE ORDER BY created_at DESC")
+            else:
+                cursor.execute("SELECT * FROM todos ORDER BY created_at DESC")
             
-            # 按创建时间倒序排列
-            todos.sort(key=lambda x: x['created_at'], reverse=True)
+            todos = cursor.fetchall()
+            
+            # 转换为字典列表
+            todos_list = []
+            for todo in todos:
+                todos_list.append({
+                    'id': todo['id'],
+                    'title': todo['title'],
+                    'completed': todo['completed'],
+                    'created_at': todo['created_at'].isoformat(),
+                    'updated_at': todo['updated_at'].isoformat()
+                })
+            
+            cursor.close()
+            conn.close()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -104,7 +166,7 @@ class handler(BaseHTTPRequestHandler):
             self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
             self.send_header('Access-Control-Allow-Headers', 'Content-Type')
             self.end_headers()
-            self.wfile.write(json.dumps(todos).encode())
+            self.wfile.write(json.dumps(todos_list).encode())
             
         except Exception as e:
             self.send_error(500, str(e))
@@ -112,14 +174,39 @@ class handler(BaseHTTPRequestHandler):
     def create_todo(self):
         """创建任务"""
         try:
+            # 初始化数据库
+            init_database()
+            
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             todo_data = json.loads(post_data.decode('utf-8'))
             
-            todo = self.add_todo_to_memory(
-                title=todo_data['title'],
-                completed=todo_data.get('completed', False)
-            )
+            conn = get_db_connection()
+            if not conn:
+                self.send_error(500, "Database connection failed")
+                return
+            
+            cursor = conn.cursor()
+            
+            # 插入新任务
+            cursor.execute("""
+                INSERT INTO todos (title, completed) 
+                VALUES (%s, %s) 
+                RETURNING id, title, completed, created_at, updated_at
+            """, (todo_data['title'], todo_data.get('completed', False)))
+            
+            result = cursor.fetchone()
+            todo = {
+                'id': result[0],
+                'title': result[1],
+                'completed': result[2],
+                'created_at': result[3].isoformat(),
+                'updated_at': result[4].isoformat()
+            }
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -133,28 +220,58 @@ class handler(BaseHTTPRequestHandler):
     def update_todo(self, todo_id):
         """更新任务"""
         try:
+            # 初始化数据库
+            init_database()
+            
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             update_data = json.loads(post_data.decode('utf-8'))
             
-            # 查找任务
-            todo = None
-            for i, t in enumerate(TODOS_DB):
-                if t['id'] == int(todo_id):
-                    todo = t
-                    break
+            conn = get_db_connection()
+            if not conn:
+                self.send_error(500, "Database connection failed")
+                return
             
-            if not todo:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+            
+            # 构建更新SQL
+            set_clauses = []
+            params = []
+            
+            if 'title' in update_data:
+                set_clauses.append("title = %s")
+                params.append(update_data['title'])
+            
+            if 'completed' in update_data:
+                set_clauses.append("completed = %s")
+                params.append(update_data['completed'])
+            
+            set_clauses.append("updated_at = NOW()")
+            params.append(todo_id)
+            
+            cursor.execute(f"""
+                UPDATE todos 
+                SET {', '.join(set_clauses)}
+                WHERE id = %s
+                RETURNING id, title, completed, created_at, updated_at
+            """, params)
+            
+            result = cursor.fetchone()
+            if not result:
                 self.send_error(404, "任务不存在")
                 return
             
-            # 更新任务
-            if 'title' in update_data:
-                todo['title'] = update_data['title']
-            if 'completed' in update_data:
-                todo['completed'] = update_data['completed']
+            todo = {
+                'id': result['id'],
+                'title': result['title'],
+                'completed': result['completed'],
+                'created_at': result['created_at'].isoformat(),
+                'updated_at': result['updated_at'].isoformat()
+            }
             
-            todo['updated_at'] = datetime.now().isoformat()
+            conn.commit()
+            cursor.close()
+            conn.close()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -168,14 +285,26 @@ class handler(BaseHTTPRequestHandler):
     def delete_todo(self, todo_id):
         """删除任务"""
         try:
-            # 查找并删除任务
-            global TODOS_DB
-            original_length = len(TODOS_DB)
-            TODOS_DB = [todo for todo in TODOS_DB if todo['id'] != int(todo_id)]
+            # 初始化数据库
+            init_database()
             
-            if len(TODOS_DB) == original_length:
+            conn = get_db_connection()
+            if not conn:
+                self.send_error(500, "Database connection failed")
+                return
+            
+            cursor = conn.cursor()
+            
+            # 删除任务
+            cursor.execute("DELETE FROM todos WHERE id = %s", (todo_id,))
+            
+            if cursor.rowcount == 0:
                 self.send_error(404, "任务不存在")
                 return
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -189,10 +318,23 @@ class handler(BaseHTTPRequestHandler):
     def delete_completed_todos(self):
         """批量删除已完成任务"""
         try:
-            global TODOS_DB
-            original_length = len(TODOS_DB)
-            TODOS_DB = [todo for todo in TODOS_DB if not todo['completed']]
-            deleted_count = original_length - len(TODOS_DB)
+            # 初始化数据库
+            init_database()
+            
+            conn = get_db_connection()
+            if not conn:
+                self.send_error(500, "Database connection failed")
+                return
+            
+            cursor = conn.cursor()
+            
+            # 删除已完成任务
+            cursor.execute("DELETE FROM todos WHERE completed = TRUE")
+            deleted_count = cursor.rowcount
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -206,9 +348,26 @@ class handler(BaseHTTPRequestHandler):
     def delete_all_todos(self):
         """清空所有任务"""
         try:
-            global TODOS_DB
-            count = len(TODOS_DB)
-            TODOS_DB = []
+            # 初始化数据库
+            init_database()
+            
+            conn = get_db_connection()
+            if not conn:
+                self.send_error(500, "Database connection failed")
+                return
+            
+            cursor = conn.cursor()
+            
+            # 获取任务数量
+            cursor.execute("SELECT COUNT(*) FROM todos")
+            count = cursor.fetchone()[0]
+            
+            # 清空所有任务
+            cursor.execute("DELETE FROM todos")
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -226,11 +385,3 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.wfile.write(json.dumps({"status": "healthy", "message": "服务运行正常"}).encode())
-    
-    def do_OPTIONS(self):
-        """处理 CORS 预检请求"""
-        self.send_response(200)
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-        self.end_headers()

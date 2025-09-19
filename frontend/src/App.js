@@ -58,6 +58,8 @@ function App() {
    * @param {Object} todoData - 任务数据
    */
   const handleAddTodo = async (todoData) => {
+    const startTime = Date.now();
+    
     try {
       setAddingTodo(true);
       setError('');
@@ -77,10 +79,13 @@ function App() {
       showToast('添加任务失败，请重试', 'error');
       console.error('添加任务失败:', err);
     } finally {
-      // 延迟重置loading状态，确保UI更新完成
+      // 确保loading至少显示1秒
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 1000 - elapsedTime);
+      
       setTimeout(() => {
         setAddingTodo(false);
-      }, 150);
+      }, remainingTime);
     }
   };
 

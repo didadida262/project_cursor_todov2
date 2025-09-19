@@ -1,6 +1,5 @@
 # 忽略不需要部署的文件
 backend/
-*.md
 .git/
 .gitignore
 node_modules/

@@ -36,6 +36,32 @@ function App() {
   };
 
   /**
+   * 执行带最小延迟的操作
+   * @param {Function} operation - 要执行的操作
+   * @param {number} minDelay - 最小延迟时间（毫秒）
+   */
+  const executeWithMinDelay = async (operation, minDelay = 1000) => {
+    const startTime = Date.now();
+    
+    try {
+      setLoading(true);
+      setError('');
+      await operation();
+    } catch (err) {
+      setError('操作失败，请重试');
+      console.error('操作失败:', err);
+    } finally {
+      // 确保loading至少显示指定时间
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, minDelay - elapsedTime);
+      
+      setTimeout(() => {
+        setLoading(false);
+      }, remainingTime);
+    }
+  };
+
+  /**
    * 获取任务列表
    * @param {string} status - 筛选状态
    */
@@ -95,9 +121,7 @@ function App() {
    * @param {boolean} completed - 完成状态
    */
   const handleToggleTodo = async (id, completed) => {
-    try {
-      setLoading(true);
-      setError('');
+    await executeWithMinDelay(async () => {
       const updatedTodo = await todoAPI.updateTodo(id, { completed });
       setTodos(prevTodos =>
         prevTodos.map(todo =>
@@ -105,12 +129,7 @@ function App() {
         )
       );
       showToast(completed ? '任务已完成！' : '任务已标记为未完成', 'success');
-    } catch (err) {
-      setError('更新任务状态失败，请重试');
-      console.error('更新任务失败:', err);
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   /**
@@ -118,63 +137,45 @@ function App() {
    * @param {number} id - 任务ID
    */
   const handleDeleteTodo = async (id) => {
-    try {
-      setLoading(true);
-      setError('');
+    await executeWithMinDelay(async () => {
       await todoAPI.deleteTodo(id);
       setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
       showToast('任务删除成功！', 'success');
-    } catch (err) {
-      setError('删除任务失败，请重试');
-      console.error('删除任务失败:', err);
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   /**
    * 批量删除已完成任务
    */
   const handleClearCompleted = async () => {
-    try {
-      setLoading(true);
-      setError('');
+    await executeWithMinDelay(async () => {
       const message = await todoAPI.deleteCompletedTodos();
       setTodos(prevTodos => prevTodos.filter(todo => !todo.completed));
       showToast(message, 'success');
-    } catch (err) {
-      setError('批量删除失败，请重试');
-      console.error('批量删除失败:', err);
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   /**
    * 清空所有任务
    */
   const handleClearAll = async () => {
-    try {
-      setLoading(true);
-      setError('');
+    await executeWithMinDelay(async () => {
       const message = await todoAPI.deleteAllTodos();
       setTodos([]);
       showToast(message, 'success');
-    } catch (err) {
-      setError('清空任务失败，请重试');
-      console.error('清空任务失败:', err);
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   /**
    * 处理筛选变化
    * @param {string} newFilter - 新的筛选条件
    */
-  const handleFilterChange = (newFilter) => {
+  const handleFilterChange = async (newFilter) => {
     if (newFilter === filter) return; // 避免重复筛选
-    setFilter(newFilter);
+    
+    await executeWithMinDelay(async () => {
+      setFilter(newFilter);
+    });
   };
 
   /**

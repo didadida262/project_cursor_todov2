@@ -35,31 +35,6 @@ function App() {
     setToast({ message: '', type: 'success' });
   };
 
-  /**
-   * 执行带最小延迟的操作
-   * @param {Function} operation - 要执行的操作
-   * @param {number} minDelay - 最小延迟时间（毫秒）
-   */
-  const executeWithMinDelay = async (operation, minDelay = 1000) => {
-    const startTime = Date.now();
-    
-    try {
-      setLoading(true);
-      setError('');
-      await operation();
-    } catch (err) {
-      setError('操作失败，请重试');
-      console.error('操作失败:', err);
-    } finally {
-      // 确保loading至少显示指定时间
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, minDelay - elapsedTime);
-      
-      setTimeout(() => {
-        setLoading(false);
-      }, remainingTime);
-    }
-  };
 
   /**
    * 获取任务列表
@@ -105,9 +80,9 @@ function App() {
       showToast('添加任务失败，请重试', 'error');
       console.error('添加任务失败:', err);
     } finally {
-      // 确保loading至少显示1秒
+      // 确保loading至少显示0.5秒
       const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 1000 - elapsedTime);
+      const remainingTime = Math.max(0, 500 - elapsedTime);
       
       setTimeout(() => {
         setAddingTodo(false);
@@ -121,7 +96,11 @@ function App() {
    * @param {boolean} completed - 完成状态
    */
   const handleToggleTodo = async (id, completed) => {
-    await executeWithMinDelay(async () => {
+    const startTime = Date.now();
+    
+    try {
+      setAddingTodo(true);
+      setError('');
       const updatedTodo = await todoAPI.updateTodo(id, { completed });
       setTodos(prevTodos =>
         prevTodos.map(todo =>
@@ -129,7 +108,18 @@ function App() {
         )
       );
       showToast(completed ? '任务已完成！' : '任务已标记为未完成', 'success');
-    });
+    } catch (err) {
+      setError('更新任务状态失败，请重试');
+      console.error('更新任务失败:', err);
+    } finally {
+      // 确保loading至少显示0.5秒
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 500 - elapsedTime);
+      
+      setTimeout(() => {
+        setAddingTodo(false);
+      }, remainingTime);
+    }
   };
 
   /**
@@ -137,33 +127,78 @@ function App() {
    * @param {number} id - 任务ID
    */
   const handleDeleteTodo = async (id) => {
-    await executeWithMinDelay(async () => {
+    const startTime = Date.now();
+    
+    try {
+      setAddingTodo(true);
+      setError('');
       await todoAPI.deleteTodo(id);
       setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
       showToast('任务删除成功！', 'success');
-    });
+    } catch (err) {
+      setError('删除任务失败，请重试');
+      console.error('删除任务失败:', err);
+    } finally {
+      // 确保loading至少显示0.5秒
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 500 - elapsedTime);
+      
+      setTimeout(() => {
+        setAddingTodo(false);
+      }, remainingTime);
+    }
   };
 
   /**
    * 批量删除已完成任务
    */
   const handleClearCompleted = async () => {
-    await executeWithMinDelay(async () => {
+    const startTime = Date.now();
+    
+    try {
+      setAddingTodo(true);
+      setError('');
       const message = await todoAPI.deleteCompletedTodos();
       setTodos(prevTodos => prevTodos.filter(todo => !todo.completed));
       showToast(message, 'success');
-    });
+    } catch (err) {
+      setError('批量删除失败，请重试');
+      console.error('批量删除失败:', err);
+    } finally {
+      // 确保loading至少显示0.5秒
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 500 - elapsedTime);
+      
+      setTimeout(() => {
+        setAddingTodo(false);
+      }, remainingTime);
+    }
   };
 
   /**
    * 清空所有任务
    */
   const handleClearAll = async () => {
-    await executeWithMinDelay(async () => {
+    const startTime = Date.now();
+    
+    try {
+      setAddingTodo(true);
+      setError('');
       const message = await todoAPI.deleteAllTodos();
       setTodos([]);
       showToast(message, 'success');
-    });
+    } catch (err) {
+      setError('清空任务失败，请重试');
+      console.error('清空任务失败:', err);
+    } finally {
+      // 确保loading至少显示0.5秒
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 500 - elapsedTime);
+      
+      setTimeout(() => {
+        setAddingTodo(false);
+      }, remainingTime);
+    }
   };
 
   /**
@@ -173,9 +208,24 @@ function App() {
   const handleFilterChange = async (newFilter) => {
     if (newFilter === filter) return; // 避免重复筛选
     
-    await executeWithMinDelay(async () => {
+    const startTime = Date.now();
+    
+    try {
+      setAddingTodo(true);
+      setError('');
       setFilter(newFilter);
-    });
+    } catch (err) {
+      setError('筛选失败，请重试');
+      console.error('筛选失败:', err);
+    } finally {
+      // 确保loading至少显示0.5秒
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 500 - elapsedTime);
+      
+      setTimeout(() => {
+        setAddingTodo(false);
+      }, remainingTime);
+    }
   };
 
   /**
@@ -282,12 +332,12 @@ function App() {
         </div>
       )}
 
-      {/* 添加任务loading遮罩 - 居中显示 */}
+      {/* 操作loading遮罩 - 居中显示，用于所有操作 */}
       {addingTodo && (
         <div className="adding-todo-overlay">
           <div className="adding-todo-content">
             <div className="loading-spinner"></div>
-            <div>添加任务中...</div>
+            <div>处理中...</div>
           </div>
         </div>
       )}

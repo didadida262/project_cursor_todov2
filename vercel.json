@@ -10,7 +10,10 @@
     },
     {
       "src": "api/todos.py",
-      "use": "@vercel/python"
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.9"
+      }
     }
   ],
   "routes": [
@@ -25,5 +28,10 @@
   ],
   "env": {
     "REACT_APP_API_URL": "/api"
+  },
+  "functions": {
+    "api/todos.py": {
+      "runtime": "python3.9"
+    }
   }
 }

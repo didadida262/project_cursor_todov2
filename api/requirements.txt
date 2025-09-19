@@ -1,2 +1,5 @@
-# Python dependencies for Vercel Functions
-# 注意：Vercel Functions 已经内置了标准库，这里不需要额外依赖
+fastapi
+uvicorn
+pydantic
+python-multipart
+psycopg2-binary

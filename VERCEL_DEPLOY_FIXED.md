@@ -42,14 +42,34 @@ vercel
 
 ### 方法3：使用简化的vercel.json
 
-如果上述方法失败，可以尝试使用`vercel-simple.json`：
+如果上述方法失败，可以尝试使用不同的配置：
 
+#### 选项A：使用vercel-simple.json
 ```bash
 # 重命名配置文件
-mv vercel.json vercel-complex.json
+mv vercel.json vercel-backup.json
 mv vercel-simple.json vercel.json
 
 # 然后部署
+vercel
+```
+
+#### 选项B：使用vercel-minimal.json（推荐）
+```bash
+# 重命名配置文件
+mv vercel.json vercel-backup.json
+mv vercel-minimal.json vercel.json
+
+# 然后部署
+vercel
+```
+
+#### 选项C：完全删除vercel.json
+```bash
+# 删除配置文件，让Vercel自动检测
+rm vercel.json
+
+# 然后部署，在Vercel Dashboard中手动配置
 vercel
 ```
 
@@ -63,17 +83,23 @@ vercel
 
 ## 🐛 常见问题
 
-### 问题1：构建失败
+### 问题1：`functions`和`builds`属性冲突
+**错误信息**：`The 'functions' property cannot be used in conjunction with the 'builds' property`
+**解决方案**：
+- 使用`vercel-minimal.json`配置
+- 或者删除`vercel.json`，在Dashboard中手动配置
+
+### 问题2：构建失败
 **解决方案**：
 - 确保`frontend/package.json`存在
 - 检查Node.js版本（推荐16.x或18.x）
 
-### 问题2：API函数错误
+### 问题3：API函数错误
 **解决方案**：
 - 检查`api/todos.py`语法
 - 确保没有外部依赖
 
-### 问题3：CORS错误
+### 问题4：CORS错误
 **解决方案**：
 - API函数已包含CORS头
 - 检查前端API URL配置

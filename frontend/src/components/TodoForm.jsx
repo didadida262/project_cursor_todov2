@@ -71,14 +71,10 @@ const TodoForm = ({ onAddTodo, loading = false }) => {
           />
           <button
             type="submit"
-            className={`add-button ${loading ? 'loading' : ''}`}
+            className="add-button"
             disabled={loading || !title.trim()}
           >
-            {loading ? (
-              <span className="loading-spinner">⏳</span>
-            ) : (
-              <span>添加</span>
-            )}
+            <span>添加</span>
           </button>
         </div>
         {error && <div className="error-message">{error}</div>}

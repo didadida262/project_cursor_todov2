@@ -254,12 +254,14 @@ function App() {
 
           {/* 任务列表 */}
           <div key={filter} className="todo-list-wrapper">
-            <TodoList
-              todos={filteredTodos}
-              onToggle={handleToggleTodo}
-              onDelete={handleDeleteTodo}
-              loading={loading}
-            />
+            <div className="todo-list-container">
+              <TodoList
+                todos={filteredTodos}
+                onToggle={handleToggleTodo}
+                onDelete={handleDeleteTodo}
+                loading={loading}
+              />
+            </div>
           </div>
         </main>
       </div>
@@ -270,6 +272,16 @@ function App() {
           <div className="loading-content">
             <div className="loading-spinner"></div>
             <div>处理中...</div>
+          </div>
+        </div>
+      )}
+
+      {/* 添加任务loading遮罩 - 居中显示 */}
+      {addingTodo && (
+        <div className="adding-todo-overlay">
+          <div className="adding-todo-content">
+            <div className="loading-spinner"></div>
+            <div>添加任务中...</div>
           </div>
         </div>
       )}

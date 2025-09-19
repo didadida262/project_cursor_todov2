@@ -120,6 +120,32 @@ python test_api.py
 2. 访问 http://localhost:8000/docs
 3. 使用 Swagger UI 测试各个接口
 
+## 🚀 部署指南
+
+### 本地开发
+使用项目根目录的启动脚本：
+```bash
+# Windows
+start_project.bat
+
+# Linux/macOS
+chmod +x start_project.sh
+./start_project.sh
+```
+
+### 云端部署
+
+#### Vercel 部署（推荐）
+1. 安装 Vercel CLI：`npm install -g vercel`
+2. 登录：`vercel login`
+3. 部署：`vercel`
+4. 按照提示配置项目
+
+#### 其他平台
+- **Railway**: 适合后端部署
+- **Netlify**: 适合前端部署
+- **Render**: 全栈部署
+
 ## 🔧 开发计划
 
 - [x] 后端 API 开发
@@ -127,7 +153,7 @@ python test_api.py
 - [x] API 文档编写
 - [x] 前端 React 应用开发
 - [x] 前后端集成测试
-- [ ] 部署配置
+- [x] 部署配置
 
 ## 📝 更新日志
 

@@ -136,10 +136,10 @@ vercel
 ### 问题1：构建失败 - 找不到index.html
 **错误信息**: `Could not find a required file. Name: index.html Searched in: /vercel/path0/frontend/public`
 **解决方案**:
-1. 使用简化的`vercel.json`配置
+1. 确保`vercel.json`配置正确
 2. 删除`.vercelignore`中的`*.md`规则
 3. 确保`frontend/public/index.html`存在
-4. 尝试使用`vercel-simple.json`配置
+4. 检查`buildCommand`和`outputDirectory`设置
 
 ### 问题2：构建失败 - 通用错误
 **错误信息**: `Build failed`
@@ -207,15 +207,11 @@ vercel
 
 ### 如果部署仍然失败
 
-1. **使用简化配置**：
-```bash
-# 备份当前配置
-mv vercel.json vercel-backup.json
-mv vercel-simple.json vercel.json
-
-# 重新部署
-vercel --prod
-```
+1. **检查配置**：
+确保`vercel.json`配置正确，包含：
+- `buildCommand`: `cd frontend && yarn install && yarn build`
+- `outputDirectory`: `frontend/build`
+- `functions`和`builds`配置
 
 2. **检查文件结构**：
 确保项目结构如下：

@@ -19,5 +19,14 @@
   ],
   "env": {
     "REACT_APP_API_URL": "/api"
-  }
+  },
+  "builds": [
+    {
+      "src": "api/todos.py",
+      "use": "@vercel/python",
+      "config": {
+        "runtime": "python3.9"
+      }
+    }
+  ]
 }

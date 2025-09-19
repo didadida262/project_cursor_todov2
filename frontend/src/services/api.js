@@ -3,9 +3,26 @@
  */
 import axios from 'axios';
 
+// 自动检测环境
+const getApiBaseURL = () => {
+  // 如果设置了环境变量，使用环境变量
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // 自动检测环境
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    // 本地开发环境
+    return 'http://localhost:8000/api/v1';
+  } else {
+    // 生产环境 (Vercel)
+    return '/api';
+  }
+};
+
 // 创建axios实例
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1',
+  baseURL: getApiBaseURL(),
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -139,7 +156,7 @@ class TodoAPI {
    */
   async checkConnection() {
     try {
-      const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const baseURL = getApiBaseURL().replace('/api/v1', '').replace('/api', '');
       const response = await axios.get(`${baseURL}/health`);
       return response.status === 200;
     } catch (error) {

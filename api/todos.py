@@ -16,7 +16,12 @@ DATABASE_URL = os.environ.get('POSTGRES_URL')
 def get_db_connection():
     """获取数据库连接"""
     try:
+        if not DATABASE_URL:
+            print("ERROR: POSTGRES_URL environment variable not set")
+            return None
+        print(f"Connecting to database: {DATABASE_URL[:20]}...")
         conn = psycopg2.connect(DATABASE_URL)
+        print("Database connection successful")
         return conn
     except Exception as e:
         print(f"Database connection error: {e}")

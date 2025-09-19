@@ -43,8 +43,8 @@ vercel login
 1. **测试前端构建**
 ```bash
 cd frontend
-npm install
-npm run build
+yarn install
+yarn build
 ```
 
 2. **验证构建输出**
@@ -74,9 +74,9 @@ vercel
 4. 配置项目设置：
    - **Framework Preset**: Other
    - **Root Directory**: `./`
-   - **Build Command**: `cd frontend && npm install && npm run build`
+   - **Build Command**: `cd frontend && yarn build`
    - **Output Directory**: `frontend/build`
-   - **Install Command**: `npm install`
+   - **Install Command**: `cd frontend && yarn install`
 
 ### 第四步：配置环境变量
 

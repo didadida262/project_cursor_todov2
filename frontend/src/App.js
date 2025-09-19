@@ -1,7 +1,7 @@
 /**
  * 主应用组件 - Todo应用入口
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, startTransition, useMemo } from 'react';
 import './styles/App.css';
 import TodoForm from './components/TodoForm';
 import TodoList from './components/TodoList';
@@ -24,9 +24,9 @@ function App() {
    * @param {string} message - 提示消息
    * @param {string} type - 提示类型: 'success', 'error', 'warning', 'info'
    */
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
-  };
+  }, []);
 
   /**
    * 隐藏Toast提示
@@ -63,17 +63,24 @@ function App() {
       setError('');
       const newTodo = await todoAPI.createTodo(todoData);
       
-      // 先更新任务列表，再显示成功提示
-      setTodos(prevTodos => [newTodo, ...prevTodos]);
+      // 使用startTransition标记非紧急更新，减少闪烁
+      startTransition(() => {
+        setTodos(prevTodos => [newTodo, ...prevTodos]);
+      });
       
-      // 显示Toast提示
-      showToast('任务添加成功！', 'success');
+      // 延迟显示Toast，避免与列表更新冲突
+      setTimeout(() => {
+        showToast('任务添加成功！', 'success');
+      }, 100);
     } catch (err) {
       setError('添加任务失败，请重试');
       showToast('添加任务失败，请重试', 'error');
       console.error('添加任务失败:', err);
     } finally {
-      setAddingTodo(false);
+      // 延迟重置loading状态，确保UI更新完成
+      setTimeout(() => {
+        setAddingTodo(false);
+      }, 150);
     }
   };
 
@@ -190,16 +197,18 @@ function App() {
   }, []);
 
   // 根据筛选条件过滤任务（客户端筛选，减少API调用）
-  const filteredTodos = todos.filter(todo => {
-    switch (filter) {
-      case 'active':
-        return !todo.completed;
-      case 'completed':
-        return todo.completed;
-      default:
-        return true;
-    }
-  });
+  const filteredTodos = useMemo(() => {
+    return todos.filter(todo => {
+      switch (filter) {
+        case 'active':
+          return !todo.completed;
+        case 'completed':
+          return todo.completed;
+        default:
+          return true;
+      }
+    });
+  }, [todos, filter]);
 
   return (
     <div className="app">

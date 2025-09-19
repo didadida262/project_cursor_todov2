@@ -155,14 +155,22 @@ vercel
 2. 确保没有外部依赖
 3. 查看Vercel函数日志
 
-### 问题3：CORS错误
+### 问题3：页面404错误
+**错误信息**: `404 Not Found` 或 `DEPLOYMENT_NOT_FOUND`
+**解决方案**:
+1. 检查`vercel.json`中的`routes`配置
+2. 确保API路由和前端路由正确配置
+3. 验证`outputDirectory`设置为`frontend/build`
+4. 确保`frontend/public/index.html`存在且正确
+
+### 问题4：CORS错误
 **错误信息**: `CORS policy error`
 **解决方案**:
 1. API函数已包含CORS头
 2. 检查前端API URL配置
 3. 确保环境变量`REACT_APP_API_URL`设置为`/api`
 
-### 问题4：路由404错误
+### 问题5：路由404错误
 **错误信息**: `404 Not Found`
 **解决方案**:
 1. 检查`vercel.json`中的路由配置

@@ -6,6 +6,7 @@ import './styles/App.css';
 import TodoForm from './components/TodoForm';
 import TodoList from './components/TodoList';
 import FilterBar from './components/FilterBar';
+import Toast from './components/Toast';
 import todoAPI from './services/api';
 
 function App() {
@@ -15,8 +16,24 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [addingTodo, setAddingTodo] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [toast, setToast] = useState({ message: '', type: 'success' });
   const [connectionStatus, setConnectionStatus] = useState('loading');
+
+  /**
+   * 显示Toast提示
+   * @param {string} message - 提示消息
+   * @param {string} type - 提示类型: 'success', 'error', 'warning', 'info'
+   */
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
+
+  /**
+   * 隐藏Toast提示
+   */
+  const hideToast = () => {
+    setToast({ message: '', type: 'success' });
+  };
 
   /**
    * 获取任务列表
@@ -44,19 +61,16 @@ function App() {
     try {
       setAddingTodo(true);
       setError('');
-      setSuccess(''); // 清除之前的成功提示
       const newTodo = await todoAPI.createTodo(todoData);
       
       // 先更新任务列表，再显示成功提示
       setTodos(prevTodos => [newTodo, ...prevTodos]);
       
-      // 延迟显示成功提示，避免与列表更新冲突
-      setTimeout(() => {
-        setSuccess('任务添加成功！');
-        setTimeout(() => setSuccess(''), 2000);
-      }, 100);
+      // 显示Toast提示
+      showToast('任务添加成功！', 'success');
     } catch (err) {
       setError('添加任务失败，请重试');
+      showToast('添加任务失败，请重试', 'error');
       console.error('添加任务失败:', err);
     } finally {
       setAddingTodo(false);
@@ -78,8 +92,7 @@ function App() {
           todo.id === id ? updatedTodo : todo
         )
       );
-      setSuccess(completed ? '任务已完成！' : '任务已标记为未完成');
-      setTimeout(() => setSuccess(''), 3000);
+      showToast(completed ? '任务已完成！' : '任务已标记为未完成', 'success');
     } catch (err) {
       setError('更新任务状态失败，请重试');
       console.error('更新任务失败:', err);
@@ -98,8 +111,7 @@ function App() {
       setError('');
       await todoAPI.deleteTodo(id);
       setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
-      setSuccess('任务删除成功！');
-      setTimeout(() => setSuccess(''), 3000);
+      showToast('任务删除成功！', 'success');
     } catch (err) {
       setError('删除任务失败，请重试');
       console.error('删除任务失败:', err);
@@ -117,8 +129,7 @@ function App() {
       setError('');
       const message = await todoAPI.deleteCompletedTodos();
       setTodos(prevTodos => prevTodos.filter(todo => !todo.completed));
-      setSuccess(message);
-      setTimeout(() => setSuccess(''), 3000);
+      showToast(message, 'success');
     } catch (err) {
       setError('批量删除失败，请重试');
       console.error('批量删除失败:', err);
@@ -136,8 +147,7 @@ function App() {
       setError('');
       const message = await todoAPI.deleteAllTodos();
       setTodos([]);
-      setSuccess(message);
-      setTimeout(() => setSuccess(''), 3000);
+      showToast(message, 'success');
     } catch (err) {
       setError('清空任务失败，请重试');
       console.error('清空任务失败:', err);
@@ -216,12 +226,6 @@ function App() {
             </div>
           )}
 
-          {/* 成功提示 */}
-          {success && (
-            <div className="success-message">
-              {success}
-            </div>
-          )}
 
           {/* 任务输入表单 */}
           <TodoForm
@@ -260,6 +264,14 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Toast 浮窗提示 */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        onClose={hideToast}
+        duration={3000}
+      />
     </div>
   );
 }

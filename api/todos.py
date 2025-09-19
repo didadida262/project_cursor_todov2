@@ -18,9 +18,9 @@ class handler(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         path = parsed_path.path
         
-        if path == '/api/todos':
+        if path == '/api/todos' or path == '/api/todos/':
             self.get_todos()
-        elif path == '/api/health':
+        elif path == '/api/health' or path == '/api/health/':
             self.health_check()
         else:
             self.send_error(404, "Not Found")
@@ -30,7 +30,7 @@ class handler(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         path = parsed_path.path
         
-        if path == '/api/todos':
+        if path == '/api/todos' or path == '/api/todos/':
             self.create_todo()
         else:
             self.send_error(404, "Not Found")
@@ -51,12 +51,12 @@ class handler(BaseHTTPRequestHandler):
         parsed_path = urlparse(self.path)
         path = parsed_path.path
         
-        if path.startswith('/api/todos/'):
+        if path.startswith('/api/todos/') and path != '/api/todos/completed' and path != '/api/todos/all':
             todo_id = path.split('/')[-1]
             self.delete_todo(todo_id)
-        elif path == '/api/todos/completed':
+        elif path == '/api/todos/completed' or path == '/api/todos/completed/':
             self.delete_completed_todos()
-        elif path == '/api/todos/all':
+        elif path == '/api/todos/all' or path == '/api/todos/all/':
             self.delete_all_todos()
         else:
             self.send_error(404, "Not Found")
